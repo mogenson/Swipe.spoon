@@ -28,3 +28,9 @@ Swipe:start(3, function(direction, distance, id)
     end
 end)
 ```
+
+## Avoid conflicts with System gestures
+Under `System Settings -> Trackpad -> More Gestures`:
+- Set `Swipe between pages` to `Off` to avoid navigating back in Chrome and Safari.
+- Set `Swipe between full-screen applications` to a different number of fingers than Swipe.spoon
+- Set `Mission Control` to a different number of fingers than Swipe.spoon
