@@ -59,14 +59,15 @@ function Cache:detect(touches)
         local id = touch.identity
         local x, y = touch.normalizedPosition.x, touch.normalizedPosition.y
         local dx, dy = x - assert(self.touches[id]).x, y - assert(self.touches[id]).y
+        local abs_dx, abs_dy = math.abs(dx), math.abs(dy)
+        local moved = (touch.phase == "moved")
 
-        left = left and (touch.phase == "moved") and (dx < 0) and (math.abs(dx) > math.abs(dy))
-        right = right and (touch.phase == "moved") and (dx > 0) and (math.abs(dx) > math.abs(dy))
-        up = up and (touch.phase == "moved") and (dy > 0) and (math.abs(dy) > math.abs(dx))
-        down = down and (touch.phase == "moved") and (dy < 0) and (math.abs(dy) > math.abs(dx))
+        left = left and moved and (dx < 0) and (abs_dx > abs_dy)
+        right = right and moved and (dx > 0) and (abs_dx > abs_dy)
+        up = up and moved and (dy > 0) and (abs_dy > abs_dx)
+        down = down and moved and (dy < 0) and (abs_dy > abs_dx)
 
         distance = { dx = distance.dx + dx, dy = distance.dy + dy }
-
         self.touches[id] = { x = x, y = y, dx = dx, dy = dy }
         size = i
     end
@@ -89,12 +90,12 @@ function Cache:detect(touches)
         if self.direction == direction then self.distance = self.distance - distance.dy end
     end
 
-    if self.direction ~= direction then
+    if direction and (self.direction ~= direction) then
         self.direction = direction
         self.distance = 0
     end
 
-    return self.direction, self.distance, self.id
+    return direction, self.distance, self.id
 end
 
 -- fingers: number of fingers for swipe (must be at least 2)
@@ -114,14 +115,10 @@ function Swipe:start(fingers, callback)
 
         if Cache:none(touches) then
             local id = Cache:set(touches)
-            -- print("SWIPE BEGIN", id)
         elseif Cache:all(touches) then
             local direction, distance, id = Cache:detect(touches)
             if direction then
-                doAfter(0, function()
-                    -- print(string.format("SWIPE: %s DIST: %f ID: %d", string.upper(direction), distance, id))
-                    callback(direction, distance, id)
-                end)
+                doAfter(0, function() callback(direction, distance, id) end)
             end
         end
     end)
